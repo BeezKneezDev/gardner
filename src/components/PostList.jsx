@@ -2,34 +2,32 @@
 import React, { useEffect, useState } from 'react';
 import { collection, getDocs } from 'firebase/firestore';
 import { db } from '../firebase/firebase';
+import { Link } from 'react-router-dom';
 
 const PostList = () => {
   const [posts, setPosts] = useState([]);
 
   useEffect(() => {
     const fetchPosts = async () => {
-      const querySnapshot = await getDocs(collection(db, "posts"));
-      const postsData = querySnapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data()
-      }));
-      setPosts(postsData);
+      const postsCollection = collection(db, 'posts');
+      const postsSnapshot = await getDocs(postsCollection);
+      const postsList = postsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      setPosts(postsList);
     };
 
     fetchPosts();
   }, []);
 
   return (
-    <div className="container mx-auto p-4">
-      <h1 className="text-3xl font-bold mb-4">Blog Posts</h1>
-      <ul>
-        {posts.map(post => (
-          <li key={post.id} className="mb-4 p-4 border rounded shadow">
-            <h2 className="text-2xl font-semibold">{post.title}</h2>
-            <p className="mt-2">{post.content}</p>
-          </li>
-        ))}
-      </ul>
+    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+      {posts.map(post => (
+        <div key={post.id} className="border p-4 rounded shadow">
+          {post.imageUrl && <img src={post.imageUrl} alt={post.title} className="mb-4 rounded" />}
+          <h3 className="text-xl font-bold mb-2">{post.title}</h3>
+          <p className="text-gray-700">{post.excerpt}</p>
+          <Link to={`/post/${post.id}`} className="text-blue-500 hover:underline">Read More</Link>
+        </div>
+      ))}
     </div>
   );
 };
