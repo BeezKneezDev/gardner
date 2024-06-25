@@ -1,4 +1,14 @@
 /* src/index.css */
+/* Import Oswald font */
+@import url('https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;700&display=swap');
+
+/* Apply Oswald font to headings */
+h1, h2, h3, h4, h5, h6 {
+    font-family: 'Oswald', sans-serif;
+}
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+
