@@ -23,7 +23,7 @@ function App() {
           <Route path="/garden-tips" element={<GardenTips />} />
           <Route path="/create-blog" element={<CreateBlog />} />
           <Route path="/contact" element={<Contact />} />
-          <Route path="/post/:id" element={<SinglePost />} />
+          <Route path="/:slug" element={<SinglePost />} /> {/* Dynamic route for single post */}
         </Routes>
       </div>
     </Router>

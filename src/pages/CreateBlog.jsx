@@ -3,12 +3,17 @@ import React, { useState } from 'react';
 import { collection, addDoc } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { db, storage } from '../firebase/firebase';
+import CategorySelect from '../components/CategorySelect';
+import slugify from 'slugify';
 
 const CreateBlog = () => {
   const [title, setTitle] = useState('');
   const [excerpt, setExcerpt] = useState('');
   const [content, setContent] = useState('');
   const [image, setImage] = useState(null);
+  const [gardenLevel, setGardenLevel] = useState('new gardener');
+  const [season, setSeason] = useState('summer');
+  const [category, setCategory] = useState('');
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -20,11 +25,18 @@ const CreateBlog = () => {
         imageUrl = await getDownloadURL(imageRef);
       }
 
+      // Generate slug from title
+      const slug = slugify(title, { lower: true });
+
       await addDoc(collection(db, 'posts'), {
         title,
         excerpt,
         content,
         imageUrl,
+        gardenLevel,
+        season,
+        category,
+        slug,
         createdAt: new Date(),
       });
 
@@ -32,6 +44,9 @@ const CreateBlog = () => {
       setExcerpt('');
       setContent('');
       setImage(null);
+      setGardenLevel('');
+      setSeason('');
+      setCategory('');
       alert('Blog post created successfully!');
     } catch (e) {
       console.error('Error adding document: ', e);
@@ -83,6 +98,31 @@ const CreateBlog = () => {
             accept="image/*"
           />
         </div>
+
+        <CategorySelect
+          label="Garden Level"
+          id="gardenLevel"
+          value={gardenLevel}
+          onChange={(e) => setGardenLevel(e.target.value)}
+          options={['Newbee', 'Worker Bee', 'Queen Bee']}
+        />
+
+        <CategorySelect
+          label="Season"
+          id="season"
+          value={season}
+          onChange={(e) => setSeason(e.target.value)}
+          options={['Summer', 'Winter', 'Spring', 'Autumn']}
+        />
+
+        <CategorySelect
+          label="Category"
+          id="category"
+          value={category}
+          onChange={(e) => setCategory(e.target.value)}
+          options={['Planting', 'Recipes', 'Tips']}
+        />
+
         <button type="submit" className="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded">
           Create Post
         </button>
