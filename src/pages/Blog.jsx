@@ -1,13 +1,21 @@
-// src/pages/Blog.jsx
-import React from 'react';
-import PostList from '../components/PostList';
+import React, { useEffect, useState } from "react";
+import PostList from "../components/PostList";
 
 const Blog = () => {
+  const [filters, setFilters] = useState({});
+  const [posts, setPosts] = useState([]);
+
+  const handleSetFilter = (newFilter) => {
+    // Directly set filters to the newFilter, discarding previous filters
+    setFilters(newFilter);
+    console.log("Setting filter with:", newFilter);
+  };
+
   return (
-    <main className="p-4">
-      <h2>Blog</h2>
-      <PostList />
-    </main>
+    <div className="max-w-7xl mx-auto p-4">
+      <h1 className="text-3xl font-bold mb-4">Blog</h1>
+      <PostList posts={posts} filters={filters} setFilter={handleSetFilter} />
+    </div>
   );
 };
 

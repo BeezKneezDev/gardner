@@ -13,7 +13,9 @@ import {
   orderBy,
   deleteDoc,
   collection,
+  addDoc,
 } from "firebase/firestore";
+import { categories } from "../constants";
 
 const SinglePost = () => {
   const { slug } = useParams();
@@ -21,38 +23,37 @@ const SinglePost = () => {
   const [post, setPost] = useState(null);
   const [loading, setLoading] = useState(true);
   const [recentPosts, setRecentPosts] = useState([]);
-  const [categories, setCategories] = useState([
-    "Planting",
-    "Recipes",
-    "Tips",
-    "New gardener",
-    "1 - 2 years",
-    "3+ years",
-    "Summer",
-    "Winter",
-    "Spring",
-    "Autumn",
-  ]);
+  const [comments, setComments] = useState([]);
+  const [newComment, setNewComment] = useState("");
 
   useEffect(() => {
-    const fetchPost = async (slug) => {
+    const fetchPost = async () => {
+      if (!slug) {
+        console.log("Slug is undefined, cannot fetch post.");
+        return;
+      }
+
       try {
         const q = query(collection(db, "posts"), where("slug", "==", slug));
         const querySnapshot = await getDocs(q);
         if (!querySnapshot.empty) {
           const postDoc = querySnapshot.docs[0];
-          const postData = postDoc.data();
-          setPost(postData);
+          setPost({ id: postDoc.id, ...postDoc.data() });
         } else {
           console.log("No matching documents.");
+          setPost(null);
         }
       } catch (error) {
-        console.error("Error fetching document:", error);
+        console.error("Error fetching post:", error);
       } finally {
         setLoading(false);
       }
     };
 
+    fetchPost();
+  }, [slug]);
+
+  useEffect(() => {
     const fetchRecentPosts = async () => {
       const recentPostsQuery = query(
         collection(db, "posts"),
@@ -64,9 +65,54 @@ const SinglePost = () => {
       setRecentPosts(posts);
     };
 
-    fetchPost(slug);
     fetchRecentPosts();
-  }, [slug]);
+  }, []);
+
+  const fetchComments = async (postId) => {
+    console.log("Fetching comments for postId:", postId); // Check the postId value
+    const commentsQuery = query(
+      collection(db, "comments"),
+      where("postId", "==", postId),
+      orderBy("createdAt", "asc")
+    );
+    console.log("Using postId for comments query:", postId);
+
+    const querySnapshot = await getDocs(commentsQuery);
+    const fetchedComments = querySnapshot.docs.map((doc) => ({
+      id: doc.id,
+      ...doc.data(),
+    }));
+    console.log("Comments fetched:", fetchedComments); // Check what comments are fetched
+    setComments(fetchedComments);
+  };
+
+  const handleCommentSubmit = async (e) => {
+    e.preventDefault();
+    if (!post || !post.id) {
+      console.error("Post data is incomplete:", post);
+      return; // Stop the function if post or post.id is undefined
+    }
+    const commentData = {
+      postId: post.id,
+      content: newComment,
+      userId: "currentUserId", // Replace with actual user ID from auth
+      createdAt: new Date(),
+    };
+
+    try {
+      await addDoc(collection(db, "comments"), commentData);
+      setNewComment("");
+      fetchComments(post.id); // Re-fetch comments to display the new one
+    } catch (error) {
+      console.error("Error adding comment: ", error);
+    }
+  };
+
+  useEffect(() => {
+    if (post) {
+      fetchComments(post.id);
+    }
+  }, [post]); // Dependency on post ensures it runs after post is fetched and set
 
   const handleDelete = async () => {
     const confirmed = window.confirm(
@@ -91,30 +137,39 @@ const SinglePost = () => {
         <h2 className="text-4xl font-bold text-green-700 mb-4">{post.title}</h2>
         <p className="text-gray-500 mb-4">
           {new Date(post.createdAt.seconds * 1000).toLocaleDateString()} |{" "}
-          {post.gardenLevel} | {post.season} | {post.customCategory}
+          {post.categories.map((categoryId, index) => (
+            <React.Fragment key={categoryId}>
+              {categories.find((cat) => cat.id === categoryId).name}
+
+              {index < post.categories.length - 1 ? " | " : ""}
+            </React.Fragment>
+          ))}
         </p>
         <p className="text-gray-700 mb-6">{post.content}</p>
-        <div className="flex space-x-4 mb-8">
-          <a href="#" className="text-blue-500 hover:text-blue-700">
-            <FaFacebook size={24} />
-          </a>
-          <a href="#" className="text-blue-500 hover:text-blue-700">
-            <FaTwitter size={24} />
-          </a>
-          <a href="#" className="text-blue-500 hover:text-blue-700">
-            <FaLinkedin size={24} />
-          </a>
-        </div>
+
         <div>
           <h3 className="text-3xl font-bold text-green-700 mb-6">Comments</h3>
-          <div className="mb-6">
-            <p className="mb-2">
-              <strong>John Doe:</strong> Great post! Learned a lot.
-            </p>
-            <p className="mb-2">
-              <strong>Jane Smith:</strong> Can't wait to try these tips in my
-              garden.
-            </p>
+          {comments.length > 0 ? (
+            comments.map((comment) => (
+              <div key={comment.id} className="mb-2">
+                <strong>{comment.userId}</strong>: {comment.content}
+              </div>
+            ))
+          ) : (
+            <p>No comments yet.</p>
+          )}
+
+          <div>
+            <h4>Add a Comment</h4>
+            <form onSubmit={handleCommentSubmit}>
+              <textarea
+                value={newComment}
+                onChange={(e) => setNewComment(e.target.value)}
+                placeholder="Write a comment..."
+                required
+              ></textarea>
+              <button type="submit">Post Comment</button>
+            </form>
           </div>
         </div>
       </section>
@@ -144,38 +199,6 @@ const SinglePost = () => {
               </div>
             </Link>
           ))}
-        </section>
-        <section className="mb-8">
-          <h3 className="text-3xl font-bold text-green-700 mb-4">Categories</h3>
-          <ul>
-            {categories.map((category, index) => (
-              <li key={index} className="mb-2">
-                <Link
-                  to="/"
-                  className="flex justify-between items-center hover:bg-gray-100 p-2 rounded transition duration-200"
-                >
-                  <span className="text-gray-700">{category}</span>
-                  <span className="text-gray-500">(count)</span>
-                </Link>
-              </li>
-            ))}
-          </ul>
-        </section>
-        <section>
-          <h3 className="text-3xl font-bold text-green-700 mb-4">
-            Newsletter Signup
-          </h3>
-          <p className="text-gray-700 mb-4">
-            Join our newsletter to stay updated!
-          </p>
-          <input
-            type="email"
-            placeholder="Your email"
-            className="block w-full border border-gray-300 rounded-md p-2 mb-4"
-          />
-          <button className="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded w-full">
-            Sign Up
-          </button>
         </section>
       </aside>
     </main>

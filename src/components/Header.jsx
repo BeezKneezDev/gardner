@@ -1,25 +1,29 @@
 // src/components/Header.jsx
+
 import React from "react";
 import { Link } from "react-router-dom";
 import { FaFacebook, FaTwitter, FaLinkedin } from "react-icons/fa";
+import { useAuth } from "../context/AuthContext";
 
 const Header = () => {
+  const { currentUser, logout } = useAuth();
+
   return (
-    <header className=" text-white">
-      <div className=" bg-green-600 ">
+    <header className="text-white">
+      <div className="bg-green-600">
         <div className="flex justify-end mx-auto max-w-7xl py-3">
-          <a href="#" className="text-white  mx-2">
+          <a href="#" className="text-white mx-2">
             <FaFacebook size={24} />
           </a>
-          <a href="#" className="text-white  mx-2">
+          <a href="#" className="text-white mx-2">
             <FaTwitter size={24} />
           </a>
-          <a href="#" className="text-white  mx-2">
+          <a href="#" className="text-white mx-2">
             <FaLinkedin size={24} />
           </a>
         </div>
       </div>
-      <div className=" flex justify-between items-center p-4 max-w-7xl mx-auto">
+      <div className="flex justify-between items-center p-4 max-w-7xl mx-auto">
         <div className="text-3xl font-bold text-green-600">
           <Link to="/">Beezkneez</Link>
         </div>
@@ -61,6 +65,32 @@ const Header = () => {
                 Contact
               </Link>
             </li>
+            {currentUser ? (
+              <>
+                <li>
+                  <Link
+                    to="/profile"
+                    className="hover:underline text-green-600"
+                  >
+                    Profile
+                  </Link>
+                </li>
+                <li>
+                  <button
+                    onClick={logout}
+                    className="hover:underline text-green-600"
+                  >
+                    Sign Out
+                  </button>
+                </li>
+              </>
+            ) : (
+              <li>
+                <Link to="/signin" className="hover:underline text-green-600">
+                  Sign In
+                </Link>
+              </li>
+            )}
           </ul>
         </nav>
       </div>

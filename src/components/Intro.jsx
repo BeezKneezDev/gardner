@@ -2,8 +2,8 @@ import React from "react";
 
 function Intro() {
   return (
-    <section className="my-8 md:py-20 flex flex-col md:flex-row mx-">
-      <div className="p-20 md:w-2/5 md:pr-8 mb-4 md:mb-0">
+    <section className="my-8 md:py-20 flex flex-col md:flex-row mx- ">
+      <div className="p-20 md:w-2/5 md:pr-8 mb-4 md:mb-0 ">
         <h2 className="text-8xl text-green-600 font-bold mb-4">
           Welcome to Beezkneez Kiwi Gardener
         </h2>

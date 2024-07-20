@@ -4,7 +4,7 @@ const QuickStartGuide = () => {
   const images = Array.from({ length: 10 }, (_, index) => index + 1); // Creates an array [1, 2, 3, ..., 10]
 
   return (
-    <section className=" bg-white text-center">
+    <section className=" bg-white text-center border-t-2 pt-32">
       <h3 className="text-7xl  font-bold mb-4 text-slate-600">
         Quick Start <span className="text-green-600">Guide</span>
       </h3>
